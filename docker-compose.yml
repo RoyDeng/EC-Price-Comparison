@@ -1,0 +1,68 @@
+version: "3.1"
+
+services:
+  api:
+    build: ./api
+    container_name: ec_price_comparison_api
+    ports:
+      - '9001:5000'
+    environment:
+      - TZ=Asia/Taipei
+    logging:
+      driver: json-file
+      options:
+        max-size: 50m
+    restart: always
+    networks:
+      - ec-price-comparison
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    hostname: ec_price_comparison_rabbitmq
+    container_name: ec_price_comparison_rabbitmq
+    ports:
+        - 5672:5672
+        - 15672:15672
+    networks:
+        - ec-price-comparison
+
+  mariadb:
+    image: mariadb:10.2.8
+    hostname: ec_price_comparison_mariadb
+    container_name: ec_price_comparison_mariadb
+    environment:
+      - TZ=Asia/Taipei      
+      - MYSQL_ROOT_PASSWORD=1qaz@WSX
+      - MYSQL_DATABASE=ec
+      - MYSQL_USER=ec_price_comparison
+      - MYSQL_PASSWORD=1qaz@WSX
+    logging:
+      driver: json-file
+      options:
+        max-size: 50m
+    restart: always
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./data/mariadb/mysql:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - ec-price-comparison
+
+  crawler:
+    restart: always
+    build: ./crawler
+    environment:
+      - TZ=Asia/Taipei
+    container_name: ec_price_comparison_crawler
+    command: bash -c 'node cron && node worker'
+    tty: true
+    logging:
+      driver: json-file
+      options:
+        max-size: 50m
+    networks:
+      - ec-price-comparison
+
+networks:
+  ec-price-comparison:
+    external: true
