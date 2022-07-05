@@ -1,5 +1,7 @@
 # EC-Price-Comparison
 
+A price comparison service that simply search products displayed on a [well-known shopping website](https://www.momoshop.com.tw/), and writes it into the database through timed crawler and asynchronous message queue technology.
+
 ## How To Build
 
 ```
